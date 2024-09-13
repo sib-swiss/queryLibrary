@@ -7,24 +7,19 @@
 #' results are directly returned to the caller.
 #' @param domain a character, used to restrict the retrieved queries by domain (a list of all available domains is shown when invoking with domain = NULL)
 #' @param query_name a character, restricts  the result to one specific query
-#' @param async same as in datashield.assign
-#' @param datasources same as in datashield.assign. Unlike in datashield.assign, only the first datasource will be used (as the queries are the same on all nodes).
 #' @return a list containing all the available queries with documentation
 #' @export
-dsqShowQueries <- function (force.download = FALSE, query_type = c("Assign", "Aggregate"),domain = NULL, query_name = NULL, async = TRUE, datasources = NULL){
+showQueries <- function (force.download = FALSE, query_type = c("General statistics", "Data load"),domain = NULL, query_name = NULL){
 
-  if(force.download || !exists('.queryCache', where = .GlobalEnv)){
-    if (is.null(datasources)) {
-      datasources <- datashield.connections_find()
-    }
-    myexpr <- paste0('loadAllQueries()')
+  if(!exists('.queryCache', where = .GlobalEnv)){
+    myexpr <- paste0('')
     # run only on one datasource:
-    queryList <- datashield.aggregate(datasources[1], as.symbol(myexpr), async = async)[[1]]
-    newfunc <- function(query_type = c("Assign", "Aggregate"), domain = NULL, query_name = NULL, datasources = NULL){
+    queryList <- loadAllQueries()
+    newfunc <- function(query_type = c("General statistics", "Data load"), domain = NULL, query_name = NULL){
       return(.readQueryList(query_type,queryList, domain, query_name, datasources))
     }
     assign('.queryCache', newfunc, envir = parent.frame())
-    return(.readQueryList(query_type, queryList, domain, query_name, datasources))
+    return(.readQueryList(query_type, queryList, domain, query_name))
   } else {
     return(.queryCache(query_type, domain, query_name))
   }
@@ -32,10 +27,10 @@ dsqShowQueries <- function (force.download = FALSE, query_type = c("Assign", "Ag
 }
 
 
-.readQueryList <- function(qType, queryList, domain= NULL, query_name = NULL, datasources = NULL){
+.readQueryList <- function(qType, queryList, domain= NULL, query_name = NULL){
 
   if(is.null(qType) || length(qType) > 1){
-    qType <- select.list(names(queryList), title = 'Assign for loading in the remote sessions; Aggregate for returning results')
+    qType <- select.list(names(queryList), title = 'General statistics; Simplified data loading')
     if(qType==''){
       return()
     }
@@ -58,8 +53,7 @@ dsqShowQueries <- function (force.download = FALSE, query_type = c("Assign", "Ag
       return(.readQueryList(qType, queryList, domain, query_name))
     )
   }
-  
-  #print(queryList[[domain]][[query_name]], quote = FALSE)
+
   sapply(names(queryList[[qType]][[domain]][[query_name]]), function(x){
     cat(paste0(x, ': '), sep="\n")
     if(x %in% c('Query', 'Description')){
@@ -69,15 +63,9 @@ dsqShowQueries <- function (force.download = FALSE, query_type = c("Assign", "Ag
     }
     cat("\n")
   })
-  run <-  select.list(c('yes', 'no'), title = 'Do you want to run it on the nodes?')
+  run <-  select.list(c('yes', 'no'), title = 'Do you want to run it in the database?')
   if(run=='yes'){
-    if (is.null(datasources)) {
-      datasources <- datashield.connections_find()
-    }
-    nodes <- select.list(names(datasources), multiple = TRUE, title = 'Please input the opal nodes where you want to execute this query:  ')
 
-    datasources <- datasources[nodes]
-    
     input <- NULL
     parms <-  queryList[[qType]][[domain]][[query_name]]$Input
     if(!is.vector(parms) || !grepl('none', parms, ignore.case = TRUE)){
@@ -87,15 +75,12 @@ dsqShowQueries <- function (force.download = FALSE, query_type = c("Assign", "Ag
       input <-unlist(lapply(parms$Parameter, function(x) readline(paste0('Value for "', x, '": '))))
 
     }
-    if(qType == 'Aggregate'){
-      dsqRun(domain,query_name, input, async = TRUE, datasources = datasources )
-    } else if(qType == 'Assign'){
-      lim <- readline('Please enter the desired row limit here (press return for all rows):')
-      if(lim == ''){
+    lim <- readline('Please enter the desired row limit here (press return for all rows):')
+    if(lim == ''){
         lim <- NULL
-      }
-      dsqLoad(NULL, domain,query_name, input,NULL, lim, async = TRUE, datasources = datasources )
     }
+    execQuery(domain,query_name, input,NULL, lim )
+    
   }
 }
 

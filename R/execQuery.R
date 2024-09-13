@@ -1,146 +1,77 @@
-execQuery <- function(qDomain , qName, qInput, symbol = NULL, rowFilter = NULL, rowLimit = NULL, rowOffset = 0, resource = NULL, union = TRUE, excludeColRegexes = NULL){
- myEnv <- parent.frame()  
-
-  
-
- allq <- tryCatch(get('allQueries', envir = .queryLibrary), error = function(e){
-                     loadAllQueries()
-                  })
-  for (typ in c('Assign', 'Aggregate')){
-    qList <- allq[[typ]][[qDomain]]
-    if(!is.null(qList)){
-      break
-    }
-  }
-  realQnameCandidates <- grep(qName, names(qList), value = TRUE)
-  if(length(realQnameCandidates) > 1){ # if more than one look for the exact match
-    realQname <- grep(paste0('^', qName, '$'), realQnameCandidates, value = TRUE)[1] 
-  } else {
-    realQname <- realQnameCandidates[1]
-  }
-  
-  if(is.null(realQname)){
-    stop(paste0('No such query name: ', qName, ' or domain: ', qDomain, '.'), call. = FALSE)
-  }
-  myQuery <- paste(qList[[realQname]]$Query, collapse = ' ')
-
-  qInput <- dsSwissKnife:::.decode.arg(qInput)
-  if(is.null(resource)){
-    resource <- c()
-    for (i in ls(envir = myEnv)){
-      x <- get(i, envir = myEnv)
-      if("SQLFlexClient" %in% class(x)){
-        resource <- c(resource, i)
+#' @title Load the result of an OMOP query in the remote session(s)
+#' @description Load remotely one of the preset queries (previously retrieved with dsqShowQueries)
+#' @param symbol a character, the name of the data frame where the resultset will be loaded. It defaults to the query_name.
+#' @param domain a character, the query domain (ex. 'care_site')
+#' @param query_name the query name as it appears in the result of dsqShowQueries
+#' @param input a vector of input parameters, in the same order as they appear in the text of the query. Information is available in dsqShowQueries() for each case.
+#' @param where_clause an optional where clause that can be appended to the query (without the 'where' keyword)
+#' @param row_limit maximum number of row retrieved
+#' @param db_connections a vector, the name of the connection(s) to the database. They must exist in the remote session(s) - it can be created with datashield.assign.db_connection().
+#' If no db_connection is provided, all the connections found in the renote session will be used. One more column called "database"
+#' will be added to the query results and it will be populated with the respective connection names. The next argument (union)
+#' will goevern further behaviour.
+#' @param union a logical, if TRUE (the default), the result sets across the multiple connections will be concatenated in one single data frame.
+#' If FALSE, one data frame will be created for each connection (with the connection name concatenated to the original name)
+#' @param  exclude_cols_regex, a vector of regular expressions used to filter out certain columns from the result. By default it filters out the columns containting 'source' in their name.
+#' If FALSE, one data frame will be created for each connection (with the connection name concatenated to the original name)
+#' @param async same as in datashield.assign
+#' @param datasources same as in datashield.assign
+#' @return the query result
+#' @export
+execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_clause = NULL, row_limit = NULL, row_offset = 0, db_connection = NULL, cdm_schema = 'public', vocabulary_schema =' public'){
+    allq <- tryCatch(get('allQueries', envir = .queryLibrary), error = function(e){
+      loadAllQueries()
+    })
+    for (typ in c('General statistics', 'Data load')){
+      qList <- allq[[typ]][[domain]]
+      if(!is.null(qList)){
+        break
       }
     }
-  }
-  if(is.null(resource)){ # still
-    stop('Could not find a suitable database connection.')
-  } else {
-    resource <- dsSwissKnife:::.decode.arg(resource)
-  }
-
-# must be set via option:
-  myQuery <- gsub('@cdm', getOption('cdm_schema', default = 'public'), myQuery, fixed = TRUE)
-  myQuery <- gsub('@vocab', getOption('vocabulary_schema', default = 'public'), myQuery, fixed = TRUE)
-  #replace generic variables with options with the same name
-  #this would replace @~some.variable~@ with getOption('some.variable):
-  if (grepl('.*?@~(.*?)~@.*?', myQuery)){ ### variables apear like @~somevar~@
-    vars <-gsub('.*?@~(.*?)~@.*?', '\\1#', myQuery) # list their names separated by #
-    vars <- strsplit(vars, '#')[[1]] # make it a vector
-    # Replace the vars one by one with their values found in the environment as options:
-    myQuery <- Reduce(function(x,y){
-                        gsub(paste0('@~',y, '~@'), getOption(y, default = ''), x, fixed = TRUE)
-                      }, vars, init = myQuery)
-  }
-  #this would replace @~some.variable~@ with getOption('some.variable')
-  # get rid of the semicolon at the and if any:
-  myQuery <- sub(';\\s*$','',myQuery)
-  # add the filter and limit
-  rowFilter <- dsSwissKnife:::.decode.arg(rowFilter)
-  if(!is.null(rowFilter) && typ == 'Assign'){
-    # some basic sql injection defense:
-    if(grepl('delete|drop|insert|truncate|update|;', rowFilter, ignore.case = TRUE)){
-      stop('The filtering clause looks dangerous, not executing', call. = FALSE)
+    realquery_nameCandidates <- grep(query_name, names(qList), value = TRUE)
+    if(length(realquery_nameCandidates) > 1){ # if more than one look for the exact match
+      realquery_name <- grep(paste0('^', query_name, '$'), realquery_nameCandidates, value = TRUE)[1] 
+    } else {
+      realquery_name <- realquery_nameCandidates[1]
     }
     
-    myQuery <- paste0('select * from (', myQuery,  ') xyx where ', rowFilter)
-  }
-  if(is.null(rowOffset)){
-    rowOffset <- 0
-  }
- # myQuery <- paste0(myQuery, ' offset ', rowOffset)
-  if(typ == 'Assign'){
-    if(!is.null(rowOffset)){
-      myQuery <- paste0(myQuery, ' offset ', rowOffset)
+    if(is.null(realquery_name)){
+      stop(paste0('No such query name: ', query_name, ' or domain: ', domain, '.'), call. = FALSE)
+    }
+    myQuery <- paste(qList[[realquery_name]]$Query, collapse = ' ')
+    
+
+    #replace generic variables with options with the same name
+    #this would replace @~some.variable~@ with getOption('some.variable):
+    if (grepl('.*?@~(.*?)~@.*?', myQuery)){ ### variables apear like @~somevar~@
+      vars <-gsub('.*?@~(.*?)~@.*?', '\\1#', myQuery) # list their names separated by #
+      vars <- strsplit(vars, '#')[[1]] # make it a vector
+      # Replace the vars one by one with their values found in the environment as options:
+      myQuery <- Reduce(function(x,y){
+        gsub(paste0('@~',y, '~@'), getOption(y, default = ''), x, fixed = TRUE)
+      }, vars, init = myQuery)
+    }
+    #this would replace @~some.variable~@ with getOption('some.variable')
+
+  # get rid of the semicolon at the end if any:
+    myQuery <- sub(';\\s*$','',myQuery)
+    # add the filter and limit
+    where_clause <- dsSwissKnife:::.decode.arg(where_clause)
+    myQuery <- paste0('select * from (', myQuery,  ') xyx where ', where_clause)
+    if(is.null(row_offset)){
+      row_offset <- 0
+    }
+    # myQuery <- paste0(myQuery, ' offset ', row_offset)
+    if(!is.null(row_offset)){
+      myQuery <- paste0(myQuery, ' offset ', row_offset)
     } 
-  
-    if(!is.null(rowLimit)){
-       myQuery <- paste0(myQuery,  ' limit ', rowLimit)
-    }
-  }
-  
-  ret <- sapply(resource, function(x){
-    out <- resourcex::qLoad(get(x, envir = myEnv), myQuery, params = qInput)
-   }, simplify = FALSE)
-  
-  
-  
-  if(typ == 'Aggregate'){
-  ret <- sapply(ret, function(x) .strip_sensitive_cols(qList[[realQname]][['Sensitive fields']], x), simplify = FALSE)
-    return(ret)
-  } # else it's Assign:
-  if(is.null(symbol)){
-    symbol <- realQname
-  }
- if(!is.null(excludeColRegexes)){
-   ret <- sapply(ret, function(x){
-     x[, .trim_hidden_fields(colnames(x), excludeColRegexes),drop=FALSE]
-   }, simplify = FALSE)
- }
-  ret <- sapply(names(ret), function(x){
-      if(NROW(ret[[x]]) > 0 ){
-        ret[[x]]$database <- x
-        ret[[x]]
-      }
-  }, simplify = FALSE)
-    # rbind them all if so asked:
-  if(union){
-      mydf <-  Reduce(rbind, ret)
-      mydf$database <- factor(mydf$database)
-      assign(symbol, mydf,envir = myEnv)
-    } else { # or not:
-      sapply(names(ret), function(x){
-        assign(paste0(symbol, '_', x), ret[[x]], envir = myEnv)
-      })
+      
+    if(!is.null(row_limit)){
+      myQuery <- paste0(myQuery,  ' limit ', row_limit)
     }
 
-  
-
-  return(TRUE)
-}
-
-
-.strip_sensitive_cols <- function(cols, df){
-  you_must <- getOption('dsQueryLibrary.enforce_strict_privacy', default = TRUE)
-  if(you_must && !is.null(cols)){
-    lim <- getOption("datashield.privacyLevel", default = 5)
-    for (mycol in cols){
-      mycol <- gsub('\\s+', '', mycol)
-      df[df[,mycol] < lim, mycol] <- NA
-    }
     
+     return(DBI::dbGetQuery(db_connection, myQuery, params = input))
+
   }
-  return(df)
-}
-
-# helper function to avoid loading useless columns:
-.trim_hidden_fields <- function(cols, regs){
-
   
-  for (r in regs){
-    cols <- grep(r, cols, value = TRUE, perl = TRUE, invert = TRUE)
-  }
-  cols
-}
-
