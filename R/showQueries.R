@@ -9,11 +9,11 @@
 showQueries <- function (query_type = c("General statistics", "Data load"),domain = NULL, query_name = NULL){
 
   if(!exists('.queryCache', where = .GlobalEnv)){
-    myexpr <- paste0('')
+   
     # run only on one datasource:
     queryList <- loadAllQueries()
     newfunc <- function(query_type = c("General statistics", "Data load"), domain = NULL, query_name = NULL){
-      return(.readQueryList(query_type,queryList, domain, query_name, datasources))
+      return(.readQueryList(query_type,queryList, domain, query_name))
     }
     assign('.queryCache', newfunc, envir = parent.frame())
     return(.readQueryList(query_type, queryList, domain, query_name))
