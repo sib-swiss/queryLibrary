@@ -32,17 +32,7 @@ execQuery(
 \item{db_connections}{a vector, the name of the connection(s) to the database. They must exist in the remote session(s) - it can be created with datashield.assign.db_connection().
 If no db_connection is provided, all the connections found in the renote session will be used. One more column called "database"
 will be added to the query results and it will be populated with the respective connection names. The next argument (union)
-will goevern further behaviour.}
-
-\item{union}{a logical, if TRUE (the default), the result sets across the multiple connections will be concatenated in one single data frame.
-If FALSE, one data frame will be created for each connection (with the connection name concatenated to the original name)}
-
-\item{exclude_cols_regex, }{a vector of regular expressions used to filter out certain columns from the result. By default it filters out the columns containting 'source' in their name.
-If FALSE, one data frame will be created for each connection (with the connection name concatenated to the original name)}
-
-\item{async}{same as in datashield.assign}
-
-\item{datasources}{same as in datashield.assign}
+will govern further behaviour.}
 }
 \value{
 the query result
