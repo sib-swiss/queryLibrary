@@ -1,0 +1,17 @@
+Package: queryLibrary
+Type: Package
+Title: OMOP query Library
+Version: 0.1.0
+Authors@R: 
+    c(person(given = "Iulian",
+             family = "Dragan",
+             role = c("aut", "cre"),
+             email = "iulian.dragan@sib.swiss"))
+Description: Implements a no frills version of https://github.com/OHDSI/QueryLibrary in R. 
+License: LGPL (>= 2.1)
+LazyData: true
+Depends:
+    DBI,
+    RPostgres
+Encoding: UTF-8
+RoxygenNote: 7.2.0
