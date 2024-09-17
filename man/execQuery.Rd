@@ -2,7 +2,7 @@
 % Please edit documentation in R/execQuery.R
 \name{execQuery}
 \alias{execQuery}
-\title{Load the result of an OMOP query in the remote session(s)}
+\title{Load the result of an OMOP query.}
 \usage{
 execQuery(
   domain = NULL,
@@ -19,24 +19,20 @@ execQuery(
 \arguments{
 \item{domain}{a character, the query domain (ex. 'care_site')}
 
-\item{query_name}{the query name as it appears in the result of dsqShowQueries}
+\item{query_name}{the query name as it appears in the result of showQueries}
 
-\item{input}{a vector of input parameters, in the same order as they appear in the text of the query. Information is available in dsqShowQueries() for each case.}
+\item{input}{a vector of input parameters, in the same order as they appear in the text of the query. Information is available in showQueries() for each case.}
 
 \item{where_clause}{an optional where clause that can be appended to the query (without the 'where' keyword)}
 
-\item{row_limit}{maximum number of row retrieved}
+\item{row_limit}{maximum number of rows retrieved}
 
-\item{symbol}{a character, the name of the data frame where the resultset will be loaded. It defaults to the query_name.}
-
-\item{db_connections}{a vector, the name of the connection(s) to the database. They must exist in the remote session(s) - it can be created with datashield.assign.db_connection().
-If no db_connection is provided, all the connections found in the renote session will be used. One more column called "database"
-will be added to the query results and it will be populated with the respective connection names. The next argument (union)
-will govern further behaviour.}
+\item{db_connection}{a character, the name of the connection to the database. It must already exist in the R session.
+If no db_connection is provided, the first connection found in the session will be used.}
 }
 \value{
 the query result
 }
 \description{
-Load remotely one of the preset queries (previously retrieved with dsqShowQueries)
+Load the resuults of one of the preset queries (previously retrieved with showQueries)
 }

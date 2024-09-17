@@ -1,16 +1,15 @@
-#' @title Load the result of an OMOP query in the remote session(s)
-#' @description Load remotely one of the preset queries (previously retrieved with dsqShowQueries)
-#' @param symbol a character, the name of the data frame where the resultset will be loaded. It defaults to the query_name.
+#' @title Load the result of an OMOP query.
+#' @description Load the resuults of one of the preset queries (previously retrieved with showQueries)
 #' @param domain a character, the query domain (ex. 'care_site')
-#' @param query_name the query name as it appears in the result of dsqShowQueries
-#' @param input a vector of input parameters, in the same order as they appear in the text of the query. Information is available in dsqShowQueries() for each case.
+#' @param query_name the query name as it appears in the result of showQueries
+#' @param input a vector of input parameters, in the same order as they appear in the text of the query. Information is available in showQueries() for each case.
 #' @param where_clause an optional where clause that can be appended to the query (without the 'where' keyword)
-#' @param row_limit maximum number of row retrieved
-#' @param db_connections a vector, the name of the connection(s) to the database. They must exist in the remote session(s) - it can be created with datashield.assign.db_connection().
-#' If no db_connection is provided, all the connections found in the renote session will be used. One more column called "database"
-#' will be added to the query results and it will be populated with the respective connection names. The next argument (union)
-#' will govern further behaviour.
-#' @return the query result
+#' @param row_limit maximum number of rows retrieved
+#' @param db_connection a character, the name of the connection to the database. It must already exist in the R session.
+#' If no db_connection is provided, the first connection found in the session will be used. 
+#' @param cdm_schema a character, the name of the data schema (default 'public')
+#' @param vocabulary_schema a characther, the name of the vocabulary schena (default 'public')
+#' @return a data frame containing the query result
 #' @export
 execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_clause = NULL, row_limit = NULL, row_offset = 0, db_connection = NULL, cdm_schema = 'public', vocabulary_schema =' public'){
     allq <- tryCatch(get('allQueries', envir = .queryLibrary), error = function(e){

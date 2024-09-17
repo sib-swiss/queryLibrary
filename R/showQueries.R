@@ -1,18 +1,18 @@
 #' @title  Show all available queries 
 #' @description Return all the available queries explained and grouped by domain.
-#' @param query_type a character, one of "General statistics" or "Data load". General statistics: generic statistics queries, same as the ones provided by the QueryLibrary OHDSI app.
+#' @param query_type a character, one of  "Data load" or "General statistics". General statistics: generic statistics queries, same as the ones provided by the QueryLibrary OHDSI app.
 #' Data load: queries that load data in the R session, preformatted for further processing.
 #' @param domain a character, used to restrict the retrieved queries by domain (a list of all available domains is shown when invoking with domain = NULL)
 #' @param query_name a character, restricts  the result to one specific query
 #' @return a list containing all the available queries with documentation
 #' @export
-showQueries <- function (query_type = c("General statistics", "Data load"),domain = NULL, query_name = NULL){
+showQueries <- function (query_type = c( "Data load", "General statistics"),domain = NULL, query_name = NULL){
 
   if(!exists('.queryCache', where = .GlobalEnv)){
    
     # run only on one datasource:
     queryList <- loadAllQueries()
-    newfunc <- function(query_type = c("General statistics", "Data load"), domain = NULL, query_name = NULL){
+    newfunc <- function(query_type = c( "Data load", "General statistics"), domain = NULL, query_name = NULL){
       return(.readQueryList(query_type,queryList, domain, query_name))
     }
     assign('.queryCache', newfunc, envir = parent.frame())
