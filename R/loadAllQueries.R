@@ -3,8 +3,8 @@ loadAllQueries <- function(){
     return(get('allQueries', envir = .queryLibrary))
   }
   ret <- list()
-  for (typ in c('General statistics', 'Data load')){
-    ql <- system.file(typ, package = 'queryLibrary')
+  for (typ in c("Data load", 'General statistics')){
+    ql <- system.file(typ, package = 'queryLib')
     if(nchar(ql) == 0){
       next
     }

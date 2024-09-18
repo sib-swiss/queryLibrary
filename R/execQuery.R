@@ -12,6 +12,7 @@
 #' @return a data frame containing the query result
 #' @export
 execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_clause = NULL, row_limit = NULL, row_offset = 0, db_connection = NULL, cdm_schema = 'public', vocabulary_schema =' public'){
+    myEnv <- parent.frame()
     allq <- tryCatch(get('allQueries', envir = .queryLibrary), error = function(e){
       loadAllQueries()
     })

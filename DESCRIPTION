@@ -1,4 +1,4 @@
-Package: queryLib
+Package: queryLibrary
 Type: Package
 Title: OMOP query Library
 Version: 0.1.0

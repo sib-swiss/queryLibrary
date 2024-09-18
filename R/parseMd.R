@@ -33,7 +33,7 @@ parseMd <- function(fpath){
         try(ret[[elName]] <- c(ret[[elName]], myLine))
       } else if(grepl('\\|', myLine)){
         myNewLine <- strsplit(myLine,'\\s*\\|\\s*')[[1]]
-        try(ret[[elName]] <- as.data.frame(rbind(ret[[elName]], myNewLine), stringsAsFactors = FALSE, row.names=NULL))
+        suppressWarnings(try(ret[[elName]] <- as.data.frame(rbind(ret[[elName]], myNewLine), stringsAsFactors = FALSE, row.names=NULL)))
       } else if (elName!='Query') {
          try(ret[[elName]] <- c(ret[[elName]], myLine))
       }

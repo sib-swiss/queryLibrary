@@ -27,7 +27,7 @@ showQueries <- function (query_type = c( "Data load", "General statistics"),doma
 .readQueryList <- function(qType, queryList, domain= NULL, query_name = NULL){
 
   if(is.null(qType) || length(qType) > 1){
-    qType <- select.list(names(queryList), title = 'General statistics; Simplified data loading')
+    qType <- select.list(names(queryList), title = "General purpose")
     if(qType==''){
       return()
     }
