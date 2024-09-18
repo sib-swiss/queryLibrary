@@ -8,14 +8,14 @@
 #' @param db_connection a character, the name of the connection to the database. It must already exist in the R session.
 #' If no db_connection is provided, the first connection found in the session will be used. 
 #' @param cdm_schema a character, the name of the data schema (default 'public')
-#' @param vocabulary_schema a characther, the name of the vocabulary schena (default 'public')
+#' @param vocabulary_schema a character, the name of the vocabulary schena (default 'public')
 #' @return a data frame containing the query result
 #' @export
 execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_clause = NULL, row_limit = NULL, row_offset = 0, db_connection = NULL, cdm_schema = 'public', vocabulary_schema =' public'){
     allq <- tryCatch(get('allQueries', envir = .queryLibrary), error = function(e){
       loadAllQueries()
     })
-    for (typ in c('General statistics', 'Data load')){
+    for (typ in c( 'Data load','General statistics')){
       qList <- allq[[typ]][[domain]]
       if(!is.null(qList)){
         break
@@ -32,8 +32,26 @@ execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_cl
       stop(paste0('No such query name: ', query_name, ' or domain: ', domain, '.'), call. = FALSE)
     }
     myQuery <- paste(qList[[realquery_name]]$Query, collapse = ' ')
+    if(is.null(db_connection)){
+      for (i in ls(envir = myEnv)){
+        x <- get(i, envir = myEnv)
+        if("PqConnection" %in% class(x)){
+          db_connection <- x
+          break
+        }
+      }
+    }
+    if(is.null(resource)){ # still
+      stop('Could not find a suitable database connection.')
+    } else {
+      resource <- dsSwissKnife:::.decode.arg(resource)
+    }
     
-
+    
+    
+    myQuery <- gsub('@cdm', cdm_schema, myQuery, fixed = TRUE)
+    myQuery <- gsub('@vocab', vocabulary_schema, myQuery, fixed = TRUE)
+    
     #replace generic variables with options with the same name
     #this would replace @~some.variable~@ with getOption('some.variable):
     if (grepl('.*?@~(.*?)~@.*?', myQuery)){ ### variables apear like @~somevar~@
@@ -49,7 +67,6 @@ execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_cl
   # get rid of the semicolon at the end if any:
     myQuery <- sub(';\\s*$','',myQuery)
     # add the filter and limit
-    where_clause <- dsSwissKnife:::.decode.arg(where_clause)
     myQuery <- paste0('select * from (', myQuery,  ') xyx where ', where_clause)
     if(is.null(row_offset)){
       row_offset <- 0
@@ -62,7 +79,7 @@ execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_cl
     if(!is.null(row_limit)){
       myQuery <- paste0(myQuery,  ' limit ', row_limit)
     }
-
+# class PqConnection
     
      return(DBI::dbGetQuery(db_connection, myQuery, params = input))
 

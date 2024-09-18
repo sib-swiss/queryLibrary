@@ -5,13 +5,13 @@
 \title{Show all available queries}
 \usage{
 showQueries(
-  query_type = c("General statistics", "Data load"),
+  query_type = c("Data load", "General statistics"),
   domain = NULL,
   query_name = NULL
 )
 }
 \arguments{
-\item{query_type}{a character, one of "General statistics" or "Data load". General statistics: generic statistics queries, same as the ones provided by the QueryLibrary OHDSI app.
+\item{query_type}{a character, one of  "Data load" or "General statistics". General statistics: generic statistics queries, same as the ones provided by the QueryLibrary OHDSI app.
 Data load: queries that load data in the R session, preformatted for further processing.}
 
 \item{domain}{a character, used to restrict the retrieved queries by domain (a list of all available domains is shown when invoking with domain = NULL)}

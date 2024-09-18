@@ -29,9 +29,13 @@ execQuery(
 
 \item{db_connection}{a character, the name of the connection to the database. It must already exist in the R session.
 If no db_connection is provided, the first connection found in the session will be used.}
+
+\item{cdm_schema}{a character, the name of the data schema (default 'public')}
+
+\item{vocabulary_schema}{a character, the name of the vocabulary schena (default 'public')}
 }
 \value{
-the query result
+a data frame containing the query result
 }
 \description{
 Load the resuults of one of the preset queries (previously retrieved with showQueries)
