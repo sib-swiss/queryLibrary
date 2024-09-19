@@ -1,5 +1,5 @@
 loadAllQueries <- function(){
-  if(exists('allQueries', envir = .queryLibrary)){
+  if(exists('.queryLibrary', envir = .GlobalEnv) && exists('allQueries', envir = .queryLibrary)){
     return(get('allQueries', envir = .queryLibrary))
   }
   ret <- list()
@@ -27,7 +27,8 @@ loadAllQueries <- function(){
     }, simplify = FALSE)
   
   }
-  
+  assign('.queryLibrary',new.env(parent=.GlobalEnv), envir = .GlobalEnv)
+
   assign('allQueries', ret, envir = .queryLibrary)
   ret
 }

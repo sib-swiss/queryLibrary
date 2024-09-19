@@ -34,19 +34,17 @@ execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_cl
     }
     myQuery <- paste(qList[[realquery_name]]$Query, collapse = ' ')
     if(is.null(db_connection)){
-      for (i in ls(envir = myEnv)){
-        x <- get(i, envir = myEnv)
+      for (i in ls(envir = .GlobalEnv)){
+        x <- get(i, envir = .GlobalEnv)
         if("PqConnection" %in% class(x)){
           db_connection <- x
           break
         }
       }
     }
-    if(is.null(resource)){ # still
+    if(is.null(db_connection)){ # still
       stop('Could not find a suitable database connection.')
-    } else {
-      resource <- dsSwissKnife:::.decode.arg(resource)
-    }
+    } 
     
     
     
