@@ -62,23 +62,19 @@ execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_cl
       }, vars, init = myQuery)
     }
     #this would replace @~some.variable~@ with getOption('some.variable')
-
   # get rid of the semicolon at the end if any:
     myQuery <- sub(';\\s*$','',myQuery)
     # add the filter and limit
+  if(!is.null(where_clause)){
     myQuery <- paste0('select * from (', myQuery,  ') xyx where ', where_clause)
-    if(is.null(row_offset)){
-      row_offset <- 0
-    }
-    # myQuery <- paste0(myQuery, ' offset ', row_offset)
-    if(!is.null(row_offset)){
+  }
+  if(!is.null(row_offset)){
       myQuery <- paste0(myQuery, ' offset ', row_offset)
-    } 
+  } 
       
-    if(!is.null(row_limit)){
+  if(!is.null(row_limit)){
       myQuery <- paste0(myQuery,  ' limit ', row_limit)
-    }
-# class PqConnection
+  }
     
      return(DBI::dbGetQuery(db_connection, myQuery, params = input))
 
