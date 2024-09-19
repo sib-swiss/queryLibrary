@@ -76,7 +76,7 @@ execQuery <- function ( domain = NULL, query_name = NULL, input = NULL, where_cl
       myQuery <- paste0(myQuery,  ' limit ', row_limit)
   }
     
-     return(DBI::dbGetQuery(db_connection, myQuery, params = input))
-
+    suppressWarnings(out <- DBI::dbGetQuery(db_connection, myQuery, params = input))
+    return(out)
   }
   
