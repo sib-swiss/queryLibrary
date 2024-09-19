@@ -4,7 +4,7 @@ loadAllQueries <- function(){
   }
   ret <- list()
   for (typ in c("Data load", 'General statistics')){
-    ql <- system.file(typ, package = 'queryLib')
+    ql <- system.file(paste0('QueryLibrary/',typ), package = 'queryLibrary')
     if(nchar(ql) == 0){
       next
     }
