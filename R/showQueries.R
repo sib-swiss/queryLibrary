@@ -4,11 +4,12 @@
 #' Data load: queries that load data in the R session, preformatted for further processing.
 #' @param domain a character, used to restrict the retrieved queries by domain (a list of all available domains is shown when invoking with domain = NULL)
 #' @param query_name a character, restricts  the result to one specific query
+#' @param force.reload a logical, rewrite the query cache in the session? Default FALSE.
 #' @return a list containing all the available queries with documentation
 #' @export
-showQueries <- function (query_type = c( "Data load", "General statistics"),domain = NULL, query_name = NULL){
+showQueries <- function (query_type = c( "Data load", "General statistics"),domain = NULL, query_name = NULL, force.reload = FALSE){
 
-  if(!exists('.queryCache', where = .GlobalEnv)){
+  if(!exists('.queryCache', where = .GlobalEnv) || force.reload){
    
     # run only on one datasource:
     queryList <- loadAllQueries()

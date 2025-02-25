@@ -7,7 +7,8 @@
 showQueries(
   query_type = c("Data load", "General statistics"),
   domain = NULL,
-  query_name = NULL
+  query_name = NULL,
+  force.reload = FALSE
 )
 }
 \arguments{
@@ -17,6 +18,8 @@ Data load: queries that load data in the R session, preformatted for further pro
 \item{domain}{a character, used to restrict the retrieved queries by domain (a list of all available domains is shown when invoking with domain = NULL)}
 
 \item{query_name}{a character, restricts  the result to one specific query}
+
+\item{force.reload}{a logical, rewrite the query cache in the session? Default FALSE.}
 }
 \value{
 a list containing all the available queries with documentation
